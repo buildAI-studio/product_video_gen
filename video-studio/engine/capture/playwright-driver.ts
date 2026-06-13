@@ -87,10 +87,24 @@ export function createPlaywrightDriver(): PageDriver {
         await settle(page, req.capture.waitFor);
         for (const s of req.capture.steps) {
           if (s.action === "click") await page.click(s.selector);
+          // page.fill is deliberate: atomic value set, reliable for controlled inputs vs keystroke simulation
           else if (s.action === "type") await page.fill(s.selector, s.text);
           else if (s.action === "scroll") {
-            if (typeof s.to === "number") await page.mouse.wheel(0, s.to);
-            else {
+            // When a selector is provided, scroll that element; otherwise scroll the window.
+            if (s.selector) {
+              if (typeof s.to === "number") {
+                await page.locator(s.selector).hover();
+                await page.mouse.wheel(0, s.to);
+              } else {
+                await page.$eval(
+                  s.selector,
+                  (el, dir) => { el.scrollTo(0, dir === "bottom" ? el.scrollHeight : 0); },
+                  s.to as "bottom" | "top",
+                );
+              }
+            } else if (typeof s.to === "number") {
+              await page.mouse.wheel(0, s.to);
+            } else {
               await page.evaluate(
                 (dir) => window.scrollTo(0, dir === "bottom" ? document.body.scrollHeight : 0),
                 s.to,

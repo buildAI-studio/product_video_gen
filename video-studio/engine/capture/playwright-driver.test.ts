@@ -44,3 +44,31 @@ test(
   },
   60_000,
 );
+
+test(
+  "clip records a non-empty video after interaction steps",
+  async () => {
+    const driver = createPlaywrightDriver();
+    const dir = mkdtempSync(join(tmpdir(), "vs-pw-clip-"));
+    const outPath = join(dir, "clip.mp4");
+    const r = await driver.clip(
+      {
+        kind: "interaction",
+        route: appUrl + "/",
+        capture: {
+          kind: "interaction",
+          route: "/",
+          steps: [
+            { action: "click", selector: "#b" },
+            { action: "wait", for: 300 },
+          ],
+        },
+        outPath,
+      },
+      config,
+    );
+    await driver.close();
+    expect(r.bytes).toBeGreaterThan(0);
+  },
+  60_000,
+);
