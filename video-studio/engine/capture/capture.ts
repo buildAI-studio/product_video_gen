@@ -20,10 +20,10 @@ function joinUrl(base: string, route: string): string {
 export async function runCapture(args: RunCaptureArgs): Promise<CaptureManifest> {
   const { storyboard, config, driver, assetsDir, productDir } = args;
   await mkdir(assetsDir, { recursive: true });
-  await driver.health(config);
 
   const scenes: CaptureSceneEntry[] = [];
   try {
+    await driver.health(config);
     for (const scene of storyboard.scenes) {
       const cap = scene.capture;
       const ext = cap.kind === "interaction" ? "mp4" : "png";
