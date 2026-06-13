@@ -9,8 +9,7 @@ import { ThemeProvider } from "./theme";
 import { Caption } from "./components/Caption";
 import { KenBurns } from "./components/KenBurns";
 import { TitleCard } from "./components/TitleCard";
-
-const TRANSITION_FRAMES = 15;
+import { TRANSITION_FRAMES } from "./constants";
 
 export type VideoProps = {
   schedule: ScheduledScene[];
@@ -48,7 +47,10 @@ export const Video: React.FC<VideoProps> = ({ schedule, theme, locale }) => {
             );
             const prev = schedule[i - 1];
             if (i === 0 || !prev || prev.transitionOut === "cut") return [seq];
-            const presentation = prev.transitionOut === "slide" ? slide() : fade();
+            const presentation =
+              prev.transitionOut === "slide"
+                ? slide({ direction: theme.direction === "rtl" ? "from-right" : "from-left" })
+                : fade();
             return [
               <TransitionSeries.Transition key={`t-${scene.id}`} presentation={presentation} timing={linearTiming({ durationInFrames: TRANSITION_FRAMES })} />,
               seq,

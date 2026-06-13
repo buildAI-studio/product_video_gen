@@ -20,7 +20,7 @@ bun run video <name>                   # capture -> narrate -> render
 - `bun run video <name> --only capture`  — Playwright screenshots/clips -> `manifests/capture.json`
 - `bun run video <name> --only narrate`  — ElevenLabs TTS -> `manifests/audio.json`
 - `bun run video <name> --only render`   — Remotion -> `out/<name>.mp4` (offline; no browser/network)
-- `--from <stage>` runs that stage onward; `--force` ignores caches; `--preview` opens Remotion Studio.
+- `--from <stage>` runs that stage onward; `--preview` opens Remotion Studio.
 
 `render` consumes only the manifests, so iterate on timing/captions without re-capturing.
 
@@ -39,3 +39,13 @@ Three isolated stages communicate through JSON manifests on disk:
    (scenes with `duration: "auto"` fit to their audio); writes `manifests/audio.json`.
 3. **render** — a Remotion composition maps the schedule to `<TransitionSeries>` with
    Ken-Burns stills, themed captions, and per-scene audio; renders the final mp4.
+
+## Known limitations
+
+- **No incremental caching yet.** Each run re-captures and re-synthesizes every scene
+  (narration re-bills ElevenLabs). Per-scene hash-based skipping is a planned follow-up;
+  the manifests already store a `hash` per scene for it.
+- **Title cards** render as a themed background plus caption; the storyboard's
+  `titlecard.logo` option is not drawn yet.
+- **`prime` hook** is typed `(page: unknown)`; cast to Playwright's `Page` in your
+  product config (kept untyped to keep the schema module browser-safe).

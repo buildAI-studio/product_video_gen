@@ -1,5 +1,5 @@
 import { test, expect } from "bun:test";
-import { computeSchedule } from "./schedule";
+import { computeSchedule, totalFrames } from "./schedule";
 import type { Storyboard } from "../schema";
 import type { CaptureManifest, AudioManifest } from "../manifest";
 
@@ -26,10 +26,14 @@ test("computes cumulative frame timing at the given fps", () => {
   const sched = computeSchedule(storyboard, capture, audio, 30);
   expect(sched[0]!.durationInFrames).toBe(90);
   expect(sched[1]!.durationInFrames).toBe(60);
-  expect(sched[0]!.fromFrame).toBe(0);
-  expect(sched[1]!.fromFrame).toBe(90);
   expect(sched[0]!.audio).toBe("audio/01-title.mp3");
   expect(sched[1]!.audio).toBeNull();
+});
+
+test("totalFrames subtracts transition overlap", () => {
+  const sched = computeSchedule(storyboard, capture, audio, 30);
+  // 90 + 60, minus one 15-frame fade overlap (01-title.transitionOut="fade" precedes 02-home) = 135
+  expect(totalFrames(sched)).toBe(135);
 });
 
 test("throws naming the scene when a capture entry is missing", () => {

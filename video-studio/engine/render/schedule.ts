@@ -1,12 +1,12 @@
 import type { LocalizedText, Storyboard } from "../schema";
 import type { AudioManifest, CaptureManifest } from "../manifest";
+import { TRANSITION_FRAMES } from "./constants";
 
 export type ScheduledScene = {
   id: string;
   kind: "screenshot" | "interaction" | "titlecard";
   asset: string;
   audio: string | null;
-  fromFrame: number;
   durationInFrames: number;
   caption?: { primary: string; secondary?: string };
   motion: "kenburns" | "none";
@@ -29,7 +29,6 @@ export function computeSchedule(
   const defaultTransition = storyboard.defaults?.transitionOut ?? "cut";
 
   const out: ScheduledScene[] = [];
-  let cursor = 0;
   for (const scene of storyboard.scenes) {
     const cap = caps.get(scene.id);
     const aud = auds.get(scene.id);
@@ -42,17 +41,21 @@ export function computeSchedule(
       kind: cap.kind,
       asset: cap.asset,
       audio: aud.audio,
-      fromFrame: cursor,
       durationInFrames,
       caption: scene.caption as LocalizedText | undefined,
       motion: scene.motion ?? defaultMotion,
       transitionOut: scene.transitionOut ?? defaultTransition,
     });
-    cursor += durationInFrames;
   }
   return out;
 }
 
 export function totalFrames(schedule: ScheduledScene[]): number {
-  return schedule.reduce((sum, s) => sum + s.durationInFrames, 0);
+  let total = 0;
+  for (let i = 0; i < schedule.length; i++) {
+    total += schedule[i]!.durationInFrames;
+    const prev = schedule[i - 1];
+    if (i > 0 && prev && prev.transitionOut !== "cut") total -= TRANSITION_FRAMES;
+  }
+  return Math.max(1, total);
 }
