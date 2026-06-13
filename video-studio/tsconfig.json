@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": ["bun", "react", "react-dom"],
+    "lib": ["ESNext", "DOM"],
+    "noEmit": true
+  },
+  "include": ["engine", "products", "fixtures"]
+}

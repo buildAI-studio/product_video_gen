@@ -1,0 +1,9 @@
+node_modules
+products/*/assets/
+products/*/audio/
+products/*/manifests/
+products/*/out/
+fixtures/*/assets/
+fixtures/*/audio/
+fixtures/*/manifests/
+fixtures/*/out/
