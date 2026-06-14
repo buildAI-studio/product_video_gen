@@ -39,7 +39,7 @@ export async function runNarrate(args: RunNarrateArgs): Promise<AudioManifest> {
     // Cache hit: reuse prior entry when hash matches, audio exists, and file still on disk
     if (!force) {
       const priorEntry = priorMap.get(scene.id);
-      if (priorEntry && priorEntry.hash === hash && priorEntry.audio !== null && (await Bun.file(outPath).exists())) {
+      if (priorEntry && priorEntry.hash === hash && priorEntry.audio !== null && priorEntry.audioSec !== null && (await Bun.file(outPath).exists())) {
         console.log(`↻ ${scene.id}: cached`);
         scenes.push(priorEntry);
         continue;

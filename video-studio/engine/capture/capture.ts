@@ -27,14 +27,20 @@ export async function runCapture(args: RunCaptureArgs): Promise<CaptureManifest>
   const priorMap = new Map<string, CaptureSceneEntry>(prior?.scenes.map((s) => [s.id, s]) ?? []);
 
   const scenes: CaptureSceneEntry[] = [];
+  let healthChecked = false;
+  const ensureHealth = async () => {
+    if (!healthChecked) {
+      await driver.health(config);
+      healthChecked = true;
+    }
+  };
   try {
-    await driver.health(config);
     for (const scene of storyboard.scenes) {
       const cap = scene.capture;
       const ext = cap.kind === "interaction" ? "mp4" : "png";
       const outPath = join(assetsDir, `${scene.id}.${ext}`);
       const asset = relative(productDir, outPath);
-      const hash = hashValue(cap);
+      const hash = hashValue({ appUrl: config.appUrl, capture: cap });
 
       // Cache hit: reuse prior entry when hash matches, scene was ok, and file still exists
       if (!force) {
@@ -50,14 +56,17 @@ export async function runCapture(args: RunCaptureArgs): Promise<CaptureManifest>
         let result: { bytes: number; w: number; h: number };
         if (cap.kind === "interaction") {
           const route = await resolveRoute(config, cap.route);
+          await ensureHealth();
           result = await driver.clip({ kind: "interaction", route: joinUrl(config.appUrl, route), capture: cap, outPath }, config);
         } else if (cap.kind === "screenshot") {
           const route = await resolveRoute(config, cap.route);
+          await ensureHealth();
           result = await driver.screenshot(
             { kind: "screenshot", route: joinUrl(config.appUrl, route), waitFor: cap.waitFor, outPath, capture: cap },
             config,
           );
         } else {
+          await ensureHealth();
           result = await driver.screenshot({ kind: "titlecard", outPath, capture: cap }, config);
         }
 
