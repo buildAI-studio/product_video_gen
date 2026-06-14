@@ -11,6 +11,7 @@ export type ScheduledScene = {
   caption?: { primary: string; secondary?: string };
   motion: "kenburns" | "none";
   transitionOut: "cut" | "fade" | "slide";
+  titlecard?: { bg?: string; logo?: boolean };
 };
 
 function byId<T extends { id: string }>(items: T[]): Map<string, T> {
@@ -45,6 +46,9 @@ export function computeSchedule(
       caption: scene.caption as LocalizedText | undefined,
       motion: scene.motion ?? defaultMotion,
       transitionOut: scene.transitionOut ?? defaultTransition,
+      ...(scene.capture.kind === "titlecard"
+        ? { titlecard: { bg: scene.capture.bg, logo: scene.capture.logo } }
+        : {}),
     });
   }
   return out;

@@ -40,3 +40,19 @@ test("throws naming the scene when a capture entry is missing", () => {
   const bad: CaptureManifest = { scenes: [capture.scenes[0]!] };
   expect(() => computeSchedule(storyboard, bad, audio, 30)).toThrow(/02-home/);
 });
+
+test("titlecard scenes carry their titlecard options", () => {
+  const sb: Storyboard = {
+    scenes: [
+      { id: "01-title", capture: { kind: "titlecard", logo: true, bg: "#123456" }, narration: "x", duration: "auto" },
+    ],
+  };
+  const cap: CaptureManifest = {
+    scenes: [{ id: "01-title", kind: "titlecard", asset: "assets/01-title.png", ok: true, hash: "a" }],
+  };
+  const aud: AudioManifest = {
+    scenes: [{ id: "01-title", audio: "audio/01-title.mp3", audioSec: 2, finalSec: 2, hash: "a" }],
+  };
+  const sched = computeSchedule(sb, cap, aud, 30);
+  expect(sched[0]!.titlecard).toEqual({ bg: "#123456", logo: true });
+});

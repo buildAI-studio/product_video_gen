@@ -49,7 +49,5 @@ Three isolated stages communicate through JSON manifests on disk:
 
 ## Known limitations
 
-- **Title cards** render as a themed background plus caption; the storyboard's
-  `titlecard.logo` option is not drawn yet.
 - **`prime` hook** is typed `(page: unknown)`; cast to Playwright's `Page` in your
   product config (kept untyped to keep the schema module browser-safe).

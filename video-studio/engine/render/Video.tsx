@@ -23,7 +23,7 @@ export type VideoProps = {
 const SceneBody: React.FC<{ scene: ScheduledScene }> = ({ scene }) => (
   <AbsoluteFill>
     {scene.kind === "titlecard" ? (
-      <TitleCard />
+      <TitleCard bg={scene.titlecard?.bg} logo={scene.titlecard?.logo} />
     ) : scene.kind === "interaction" ? (
       <OffthreadVideo src={staticFile(scene.asset)} />
     ) : (
