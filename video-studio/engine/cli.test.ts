@@ -24,3 +24,14 @@ test("--force and --preview flags are parsed", () => {
 test("init subcommand is recognized", () => {
   expect(parseArgs(["init", "newproduct"]).command).toBe("init");
 });
+
+test("discover subcommand is recognized with product name", () => {
+  const a = parseArgs(["discover", "shop"]);
+  expect(a.command).toBe("discover");
+  expect(a.product).toBe("shop");
+});
+
+test("discover with --limit parses the limit value", () => {
+  const a = parseArgs(["discover", "shop", "--limit", "5"]);
+  expect(a.limit).toBe(5);
+});

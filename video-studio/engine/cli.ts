@@ -2,7 +2,7 @@ import { bundle } from "@remotion/bundler";
 import { renderMedia, selectComposition } from "@remotion/renderer";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
-import { loadProduct, type LoadedProduct } from "./config";
+import { loadProduct, loadProductConfig, type LoadedProduct } from "./config";
 import { readAudioManifest, readCaptureManifest, writeAudioManifest, writeCaptureManifest } from "./manifest";
 import { runCapture } from "./capture/capture";
 import { createPlaywrightDriver } from "./capture/playwright-driver";
@@ -10,6 +10,9 @@ import { runNarrate } from "./narrate/narrate";
 import { createElevenLabsProvider } from "./narrate/elevenlabs";
 import { computeSchedule } from "./render/schedule";
 import { parseArgs, stagesToRun } from "./stages";
+import { runDiscover } from "./discover/discover";
+import { serializeStoryboard } from "./discover/serialize";
+import { createPlaywrightDiscoverDriver } from "./discover/playwright-discover";
 
 const ROOT = import.meta.dir.replace(/\/engine$/, "");
 
@@ -34,13 +37,24 @@ async function main() {
   const args = parseArgs(Bun.argv.slice(2));
   if (!args.product) {
     console.error(
-      "usage: video <product> [--only capture|narrate|render] [--from <stage>] [--force] [--preview]\n       video init <product>",
+      "usage: video <product> [--only capture|narrate|render] [--from <stage>] [--force] [--preview]\n       video init <product>\n       video discover <product> [--limit 12]",
     );
     process.exit(1);
   }
 
   if (args.command === "init") {
     await scaffold(args.product);
+    return;
+  }
+
+  if (args.command === "discover") {
+    const { config, paths } = await loadProductConfig(ROOT, args.product, args.base);
+    console.log(`▶ discovering ${args.product} at ${config.appUrl}`);
+    const storyboard = await runDiscover({ config, driver: createPlaywrightDiscoverDriver(), limit: args.limit });
+    const draftPath = join(paths.dir, "storyboard.draft.ts");
+    await Bun.write(draftPath, serializeStoryboard(storyboard));
+    console.log(`✓ wrote ${storyboard.scenes.length} scenes to ${draftPath}`);
+    console.log(`  Review it, fill in the TODO captions/narration, then rename to storyboard.ts.`);
     return;
   }
 

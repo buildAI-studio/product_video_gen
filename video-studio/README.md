@@ -47,6 +47,16 @@ Three isolated stages communicate through JSON manifests on disk:
 3. **render** — a Remotion composition maps the schedule to `<TransitionSeries>` with
    Ken-Burns stills, themed captions, and per-scene audio; renders the final mp4.
 
+## Auto-discovery (draft storyboards)
+
+Point the toolkit at a running app and let it draft a storyboard from the landing page's nav links:
+
+```bash
+bun run video discover <name> [--limit 12]
+```
+
+It writes `products/<name>/storyboard.draft.ts` (it never overwrites your `storyboard.ts`): a title card plus one screenshot scene per discovered route, with `TODO` captions/narration for you to fill in. Review it, edit, then rename to `storyboard.ts` and run the pipeline. Discovery is deterministic (no LLM) — it reads same-origin `<a href>` links on the landing page.
+
 ## Known limitations
 
 - **`prime` hook** is typed `(page: unknown)`; cast to Playwright's `Page` in your

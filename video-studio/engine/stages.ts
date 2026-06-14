@@ -2,13 +2,14 @@ export const ALL_STAGES = ["capture", "narrate", "render"] as const;
 export type Stage = (typeof ALL_STAGES)[number];
 
 export type ParsedArgs = {
-  command: "run" | "init";
+  command: "run" | "init" | "discover";
   product: string;
   only?: Stage;
   from?: Stage;
   force: boolean;
   preview: boolean;
   base: string;
+  limit?: number;
 };
 
 function isStage(s: string | undefined): s is Stage {
@@ -17,9 +18,12 @@ function isStage(s: string | undefined): s is Stage {
 
 export function parseArgs(argv: string[]): ParsedArgs {
   const args = [...argv];
-  let command: "run" | "init" = "run";
+  let command: "run" | "init" | "discover" = "run";
   if (args[0] === "init") {
     command = "init";
+    args.shift();
+  } else if (args[0] === "discover") {
+    command = "discover";
     args.shift();
   }
   const product = args.shift() ?? "";
@@ -32,6 +36,10 @@ export function parseArgs(argv: string[]): ParsedArgs {
     else if (a === "--force") out.force = true;
     else if (a === "--preview") out.preview = true;
     else if (a === "--base" && args[i + 1]) out.base = args[++i]!;
+    else if (a === "--limit" && args[i + 1]) {
+      const n = Number(args[++i]);
+      if (!isNaN(n)) out.limit = n;
+    }
   }
   return out;
 }
