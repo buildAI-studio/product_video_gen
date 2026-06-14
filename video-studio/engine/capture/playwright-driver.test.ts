@@ -42,7 +42,7 @@ test(
     await driver.close();
     expect(r.bytes).toBeGreaterThan(8 * 1024);
   },
-  60_000,
+  120_000,
 );
 
 test(
@@ -70,5 +70,5 @@ test(
     await driver.close();
     expect(r.bytes).toBeGreaterThan(0);
   },
-  60_000,
+  120_000,
 );

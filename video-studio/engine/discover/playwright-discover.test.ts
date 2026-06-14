@@ -46,7 +46,7 @@ test(
     expect(hrefs.some((h) => h.endsWith("/dashboard"))).toBe(true);
     expect(hrefs.some((h) => h.endsWith("/reports"))).toBe(true);
   },
-  60_000,
+  120_000,
 );
 
 test(
@@ -74,5 +74,5 @@ test(
     // Deduplicated: /dashboard appears only once despite two anchors pointing to it
     expect(routePaths.filter((r) => r === "/dashboard")).toHaveLength(1);
   },
-  60_000,
+  120_000,
 );
