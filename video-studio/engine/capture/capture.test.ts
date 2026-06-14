@@ -195,6 +195,47 @@ test("parseStoryboard accepts screenshot with steps", () => {
   }
 });
 
+test("focus: driver focus result is stored on manifest entry with label from scene", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "vs-cap-focus-"));
+  const capturedReqs: ScreenshotRequest[] = [];
+  const sb: Storyboard = {
+    scenes: [{ id: "02-kpi", capture: { kind: "screenshot", route: "/dashboard" }, duration: 2, focus: { selector: "#kpi", label: "KPI" } }],
+  };
+  const m = await runCapture({
+    storyboard: sb,
+    config,
+    assetsDir: dir,
+    productDir: dir,
+    driver: fakeDriver({
+      screenshot: async (req) => {
+        capturedReqs.push(req);
+        return { bytes: 50_000, w: 1920, h: 1080, focus: { x: 100, y: 200, w: 300, h: 80 } };
+      },
+    }),
+  });
+  // focusSelector was passed to driver
+  expect(capturedReqs[0]!.focusSelector).toBe("#kpi");
+  // manifest entry has focus with measured box + label from scene
+  expect(m.scenes[0]!.focus).toEqual({ x: 100, y: 200, w: 300, h: 80, label: "KPI" });
+});
+
+test("focus: no focus on manifest entry when driver returns no focus box", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "vs-cap-focus-nil-"));
+  const sb: Storyboard = {
+    scenes: [{ id: "02-home", capture: { kind: "screenshot", route: "/" }, duration: 2, focus: { selector: "#missing" } }],
+  };
+  const m = await runCapture({
+    storyboard: sb,
+    config,
+    assetsDir: dir,
+    productDir: dir,
+    driver: fakeDriver({
+      screenshot: async () => ({ bytes: 50_000, w: 1920, h: 1080 }),
+    }),
+  });
+  expect(m.scenes[0]!.focus).toBeUndefined();
+});
+
 test("caching: skips only unchanged scenes, recaptures changed ones", async () => {
   const dir = mkdtempSync(join(tmpdir(), "vs-cap-partial-"));
   const sb1: Storyboard = {

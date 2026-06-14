@@ -36,6 +36,7 @@ export const scene = z
     duration: z.union([z.number().positive(), z.literal("auto")]),
     motion: z.enum(["kenburns", "none"]).optional(),
     transitionOut: z.enum(["cut", "fade", "slide"]).optional(),
+    focus: z.object({ selector: z.string(), label: z.string().optional() }).optional(),
   })
   .superRefine((s, ctx) => {
     if (s.duration === "auto" && !s.narration) {
@@ -79,6 +80,7 @@ export type LocalizedText = z.infer<typeof localizedText>;
 export type Step = z.infer<typeof step>;
 export type Capture = z.infer<typeof capture>;
 export type Scene = z.infer<typeof scene>;
+export type Focus = NonNullable<Scene["focus"]>;
 export type Storyboard = z.infer<typeof storyboard>;
 export type ProductConfigData = z.infer<typeof productConfig>;
 

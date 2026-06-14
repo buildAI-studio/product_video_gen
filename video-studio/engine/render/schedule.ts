@@ -12,6 +12,7 @@ export type ScheduledScene = {
   motion: "kenburns" | "none";
   transitionOut: "cut" | "fade" | "slide";
   titlecard?: { bg?: string; logo?: boolean };
+  focus?: { x: number; y: number; w: number; h: number; label?: string };
 };
 
 function byId<T extends { id: string }>(items: T[]): Map<string, T> {
@@ -49,6 +50,7 @@ export function computeSchedule(
       ...(scene.capture.kind === "titlecard"
         ? { titlecard: { bg: scene.capture.bg, logo: scene.capture.logo } }
         : {}),
+      ...(cap.focus ? { focus: cap.focus } : {}),
     });
   }
   return out;

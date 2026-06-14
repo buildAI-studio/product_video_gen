@@ -9,6 +9,8 @@ import { ThemeProvider } from "./theme";
 import { Caption } from "./components/Caption";
 import { KenBurns } from "./components/KenBurns";
 import { TitleCard } from "./components/TitleCard";
+import { Spotlight } from "./components/Spotlight";
+import { Cursor } from "./components/Cursor";
 import { TRANSITION_FRAMES } from "./constants";
 
 export type VideoProps = {
@@ -26,9 +28,17 @@ const SceneBody: React.FC<{ scene: ScheduledScene }> = ({ scene }) => (
       <TitleCard bg={scene.titlecard?.bg} logo={scene.titlecard?.logo} />
     ) : scene.kind === "interaction" ? (
       <OffthreadVideo src={staticFile(scene.asset)} />
+    ) : scene.focus ? (
+      <KenBurns src={scene.asset} enabled={false} />
     ) : (
       <KenBurns src={scene.asset} enabled={scene.motion === "kenburns"} />
     )}
+    {scene.kind === "screenshot" && scene.focus ? (
+      <>
+        <Spotlight focus={scene.focus} />
+        <Cursor targetX={scene.focus.x + scene.focus.w / 2} targetY={scene.focus.y + scene.focus.h / 2} />
+      </>
+    ) : null}
     {scene.caption ? <Caption primary={scene.caption.primary} secondary={scene.caption.secondary} /> : null}
     {scene.audio ? <Audio src={staticFile(scene.audio)} /> : null}
   </AbsoluteFill>

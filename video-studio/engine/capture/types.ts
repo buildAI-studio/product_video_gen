@@ -7,6 +7,7 @@ export type ScreenshotRequest = {
   steps?: Step[]; // optional pre-screenshot interaction steps (screenshot kind only)
   outPath: string; // absolute path to write the PNG
   capture: Capture; // full capture node (titlecard bg/logo, etc.)
+  focusSelector?: string; // CSS selector to measure for spotlight treatment
 };
 
 export type ClipRequest = {
@@ -16,7 +17,7 @@ export type ClipRequest = {
   outPath: string; // absolute path to write the clip
 };
 
-export type DriverResult = { bytes: number; w: number; h: number };
+export type DriverResult = { bytes: number; w: number; h: number; focus?: { x: number; y: number; w: number; h: number } };
 
 /** Narrow seam over Playwright so the capture stage is testable without a browser. */
 export type PageDriver = {

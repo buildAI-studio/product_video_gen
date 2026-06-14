@@ -102,7 +102,12 @@ export function createPlaywrightDriver(): PageDriver {
         }
         await page.screenshot({ path: req.outPath, type: "png", fullPage: false });
         const bytes = (await Bun.file(req.outPath).arrayBuffer()).byteLength;
-        return { bytes, w: config.output.width, h: config.output.height };
+        let focus: DriverResult["focus"];
+        if (req.focusSelector) {
+          const box = await page.locator(req.focusSelector).first().boundingBox().catch(() => null);
+          if (box) focus = { x: box.x, y: box.y, w: box.width, h: box.height };
+        }
+        return { bytes, w: config.output.width, h: config.output.height, focus };
       } finally {
         await page.context().close();
       }

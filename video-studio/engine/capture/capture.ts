@@ -53,7 +53,7 @@ export async function runCapture(args: RunCaptureArgs): Promise<CaptureManifest>
       }
 
       try {
-        let result: { bytes: number; w: number; h: number };
+        let result: { bytes: number; w: number; h: number; focus?: { x: number; y: number; w: number; h: number } };
         if (cap.kind === "interaction") {
           const route = await resolveRoute(config, cap.route);
           await ensureHealth();
@@ -62,7 +62,7 @@ export async function runCapture(args: RunCaptureArgs): Promise<CaptureManifest>
           const route = await resolveRoute(config, cap.route);
           await ensureHealth();
           result = await driver.screenshot(
-            { kind: "screenshot", route: joinUrl(config.appUrl, route), waitFor: cap.waitFor, steps: cap.steps, outPath, capture: cap },
+            { kind: "screenshot", route: joinUrl(config.appUrl, route), waitFor: cap.waitFor, steps: cap.steps, outPath, capture: cap, focusSelector: scene.focus?.selector },
             config,
           );
         } else {
@@ -74,7 +74,10 @@ export async function runCapture(args: RunCaptureArgs): Promise<CaptureManifest>
         if (!ok) {
           console.error(`✗ ${scene.id}: asset only ${result.bytes} bytes (< ${MIN_ASSET_BYTES}); likely blank/redirect`);
         }
-        scenes.push({ id: scene.id, kind: cap.kind, asset, ok, w: result.w, h: result.h, hash });
+        const focusEntry = cap.kind === "screenshot" && result.focus
+          ? { ...result.focus, label: scene.focus?.label }
+          : undefined;
+        scenes.push({ id: scene.id, kind: cap.kind, asset, ok, w: result.w, h: result.h, hash, ...(focusEntry ? { focus: focusEntry } : {}) });
       } catch (cause) {
         console.error(`✗ ${scene.id}: capture failed — ${(cause as Error).message}`);
         scenes.push({ id: scene.id, kind: cap.kind, asset, ok: false, hash });
