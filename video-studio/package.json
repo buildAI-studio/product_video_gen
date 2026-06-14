@@ -1,0 +1,28 @@
+{
+  "name": "video-studio",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "video": "bun run engine/cli.ts",
+    "test": "bun test",
+    "typecheck": "tsc --noEmit",
+    "preview": "remotion studio engine/index.ts"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.448",
+    "@remotion/cli": "4.0.448",
+    "@remotion/renderer": "4.0.448",
+    "@remotion/transitions": "4.0.448",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.448",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/bun": "1.3.3",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
+    "playwright": "1.55.1",
+    "typescript": "5.7.2"
+  }
+}
