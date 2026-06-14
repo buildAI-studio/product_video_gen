@@ -195,6 +195,31 @@ test("parseStoryboard accepts screenshot with steps", () => {
   }
 });
 
+test("parseStoryboard accepts interaction capture with hover step", () => {
+  const parsed = parseStoryboard({
+    scenes: [
+      {
+        id: "x",
+        capture: {
+          kind: "interaction",
+          route: "/",
+          steps: [
+            { action: "hover", selector: "#x" },
+            { action: "click", selector: "#b" },
+          ],
+        },
+        duration: 2,
+      },
+    ],
+  });
+  expect(parsed.scenes[0]!.capture.kind).toBe("interaction");
+  const cap = parsed.scenes[0]!.capture;
+  if (cap.kind === "interaction") {
+    expect(cap.steps[0]).toEqual({ action: "hover", selector: "#x" });
+    expect(cap.steps[1]).toEqual({ action: "click", selector: "#b" });
+  }
+});
+
 test("focus: driver focus result is stored on manifest entry with label from scene", async () => {
   const dir = mkdtempSync(join(tmpdir(), "vs-cap-focus-"));
   const capturedReqs: ScreenshotRequest[] = [];

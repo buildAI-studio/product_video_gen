@@ -7,6 +7,7 @@ export const localizedText = z.object({
 
 export const step = z.discriminatedUnion("action", [
   z.object({ action: z.literal("click"), selector: z.string() }),
+  z.object({ action: z.literal("hover"), selector: z.string() }),
   z.object({ action: z.literal("type"), selector: z.string(), text: z.string() }),
   z.object({
     action: z.literal("scroll"),
