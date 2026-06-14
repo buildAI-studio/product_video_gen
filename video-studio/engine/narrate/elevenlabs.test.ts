@@ -29,6 +29,9 @@ test("writes audio and returns the last alignment end time as duration", async (
   expect((await Bun.file(outPath).arrayBuffer()).byteLength).toBe(9);
 });
 
-test("throws a clear error when the API key is missing", () => {
-  expect(() => createElevenLabsProvider({ apiKey: "" })).toThrow(/ELEVENLABS_API_KEY/);
+test("throws a clear error when the API key is missing", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "vs-el-nokey-"));
+  const outPath = join(dir, "s.mp3");
+  const provider = createElevenLabsProvider({ apiKey: "" });
+  await expect(provider.synthesize({ text: "x", outPath, config })).rejects.toThrow(/ELEVENLABS_API_KEY/);
 });

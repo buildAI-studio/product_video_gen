@@ -13,14 +13,14 @@ type WithTimestampsResponse = {
 
 /** Concrete ElevenLabs TTS provider using the with-timestamps endpoint for exact duration. */
 export function createElevenLabsProvider(opts: ElevenLabsOptions): TtsProvider {
-  if (!opts.apiKey) {
-    throw new Error("ElevenLabs API key missing — set ELEVENLABS_API_KEY in the environment");
-  }
   const doFetch = opts.fetchImpl ?? fetch;
   const defaultModel = opts.defaultModelId ?? "eleven_multilingual_v2";
 
   return {
     async synthesize(req: TtsRequest): Promise<TtsResult> {
+      if (!opts.apiKey) {
+        throw new Error("ElevenLabs API key missing — set ELEVENLABS_API_KEY in the environment");
+      }
       const voice = req.config.voice;
       if (!voice) throw new Error("product config has no `voice` — set voice.id to an ElevenLabs voice id");
 

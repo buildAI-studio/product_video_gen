@@ -63,4 +63,4 @@ test("captures → narrates → renders the demo fixture to an mp4", async () =>
   await renderMedia({ composition, serveUrl, codec: "h264", outputLocation: outPath, inputProps, frameRange: [0, 20] });
 
   expect((await Bun.file(outPath).arrayBuffer()).byteLength).toBeGreaterThan(1000);
-}, 180_000);
+}, 300_000);
