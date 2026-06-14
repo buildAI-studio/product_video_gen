@@ -3,7 +3,7 @@ import type { CrawledLink, DiscoveredRoute } from "./types";
 /**
  * Converts crawled links to clean, deduplicated, relative routes.
  *
- * - Resolves each href against appUrl; skips external origins.
+ * - Resolves each href against appUrl; skips external (different-origin) links.
  * - Skips non-http(s) schemes (mailto:, tel:, javascript:, hash-only anchors).
  * - Strips query string and hash; normalises trailing slash (strip, keep "/" as "/").
  * - Deduplicates by route (first occurrence wins).
@@ -39,7 +39,7 @@ export function toRoutes(
     // Skip non-http(s) schemes (mailto:, tel:, javascript:, etc.)
     if (url.protocol !== "http:" && url.protocol !== "https:") continue;
 
-    // Skip external origins
+    // Skip different-origin links (same-origin = same scheme + host + port)
     if (url.origin !== base.origin) continue;
 
     // Normalise: drop query + hash, strip trailing slash (keep root "/")

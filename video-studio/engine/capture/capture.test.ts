@@ -123,6 +123,36 @@ test("caching: second run skips driver calls when hash matches and asset exists 
   expect(forceCallCount).toBe(callsAfterFirst); // same count as first run
 });
 
+test("caching: fully-cached run never calls health() even if the server is down", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "vs-cap-lazy-health-"));
+
+  // First run: real driver that writes files so the on-disk existence check passes later
+  const firstDriver = fakeDriver({
+    screenshot: async (req) => {
+      await Bun.write(req.outPath, "x".repeat(50_000));
+      return { bytes: 50_000, w: 1920, h: 1080 };
+    },
+    clip: async (req) => {
+      await Bun.write(req.outPath, "x".repeat(200_000));
+      return { bytes: 200_000, w: 1920, h: 1080 };
+    },
+  });
+  const prior = await runCapture({ storyboard, config, driver: firstDriver, assetsDir: dir, productDir: dir });
+  expect(prior.scenes.every((s) => s.ok)).toBe(true);
+
+  // Second run: driver whose health() and capture methods throw — all scenes must be cache hits
+  const deadDriver = fakeDriver({
+    health: async () => { throw new Error("server down"); },
+    screenshot: async () => { throw new Error("server down"); },
+    clip: async () => { throw new Error("server down"); },
+  });
+  const m2 = await runCapture({ storyboard, config, driver: deadDriver, assetsDir: dir, productDir: dir, prior, force: false });
+
+  // Must resolve successfully (health was never called) and return the same manifest
+  expect(m2.scenes.map((s) => s.id)).toEqual(prior.scenes.map((s) => s.id));
+  expect(m2.scenes.every((s) => s.ok)).toBe(true);
+});
+
 test("caching: skips only unchanged scenes, recaptures changed ones", async () => {
   const dir = mkdtempSync(join(tmpdir(), "vs-cap-partial-"));
   const sb1: Storyboard = {
