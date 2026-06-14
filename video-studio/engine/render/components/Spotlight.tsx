@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useId } from "react";
 import { AbsoluteFill, interpolate, useCurrentFrame, useVideoConfig } from "remotion";
 import { useTheme } from "../theme";
 
@@ -8,6 +8,8 @@ export const Spotlight: React.FC<{ focus: FocusBox }> = ({ focus }) => {
   const frame = useCurrentFrame();
   const { width, height } = useVideoConfig();
   const { theme } = useTheme();
+  const rawId = useId();
+  const maskId = `spot-${rawId.replace(/:/g, "")}`;
   const pad = 10;
   const x = Math.max(0, focus.x - pad), y = Math.max(0, focus.y - pad);
   const w = focus.w + pad * 2, h = focus.h + pad * 2;
@@ -17,12 +19,12 @@ export const Spotlight: React.FC<{ focus: FocusBox }> = ({ focus }) => {
     <AbsoluteFill>
       <svg width={width} height={height} style={{ position: "absolute" }}>
         <defs>
-          <mask id="spot">
+          <mask id={maskId}>
             <rect width={width} height={height} fill="white" />
             <rect x={x} y={y} width={w} height={h} rx={14} ry={14} fill="black" />
           </mask>
         </defs>
-        <rect width={width} height={height} fill={`rgba(0,0,0,${dim})`} mask="url(#spot)" />
+        <rect width={width} height={height} fill={`rgba(0,0,0,${dim})`} mask={`url(#${maskId})`} />
         <rect x={x} y={y} width={w} height={h} rx={14} ry={14} fill="none" stroke={theme.palette.accent} strokeWidth={3} opacity={ring} />
       </svg>
       {focus.label ? (
