@@ -40,7 +40,7 @@ export async function runCapture(args: RunCaptureArgs): Promise<CaptureManifest>
       const ext = cap.kind === "interaction" ? "mp4" : "png";
       const outPath = join(assetsDir, `${scene.id}.${ext}`);
       const asset = relative(productDir, outPath);
-      const hash = hashValue({ appUrl: config.appUrl, capture: cap });
+      const hash = hashValue({ appUrl: config.appUrl, capture: cap, focus: scene.focus ?? null });
 
       // Cache hit: reuse prior entry when hash matches, scene was ok, and file still exists
       if (!force) {
