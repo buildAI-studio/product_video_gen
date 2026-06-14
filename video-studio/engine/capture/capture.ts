@@ -11,6 +11,8 @@ export type RunCaptureArgs = {
   driver: PageDriver;
   assetsDir: string; // absolute dir to write assets into
   productDir: string; // absolute product root (manifest paths are relative to this)
+  prior?: CaptureManifest | null; // previous manifest for incremental caching
+  force?: boolean; // when true, bypass cache and re-capture all scenes
 };
 
 function joinUrl(base: string, route: string): string {
@@ -18,8 +20,11 @@ function joinUrl(base: string, route: string): string {
 }
 
 export async function runCapture(args: RunCaptureArgs): Promise<CaptureManifest> {
-  const { storyboard, config, driver, assetsDir, productDir } = args;
+  const { storyboard, config, driver, assetsDir, productDir, prior, force } = args;
   await mkdir(assetsDir, { recursive: true });
+
+  // Build a lookup map from prior manifest for O(1) access
+  const priorMap = new Map<string, CaptureSceneEntry>(prior?.scenes.map((s) => [s.id, s]) ?? []);
 
   const scenes: CaptureSceneEntry[] = [];
   try {
@@ -30,6 +35,16 @@ export async function runCapture(args: RunCaptureArgs): Promise<CaptureManifest>
       const outPath = join(assetsDir, `${scene.id}.${ext}`);
       const asset = relative(productDir, outPath);
       const hash = hashValue(cap);
+
+      // Cache hit: reuse prior entry when hash matches, scene was ok, and file still exists
+      if (!force) {
+        const priorEntry = priorMap.get(scene.id);
+        if (priorEntry && priorEntry.hash === hash && priorEntry.ok === true && (await Bun.file(outPath).exists())) {
+          console.log(`↻ ${scene.id}: cached`);
+          scenes.push(priorEntry);
+          continue;
+        }
+      }
 
       try {
         let result: { bytes: number; w: number; h: number };

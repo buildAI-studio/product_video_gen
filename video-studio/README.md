@@ -21,8 +21,15 @@ bun run video <name>                   # capture -> narrate -> render
 - `bun run video <name> --only narrate`  — ElevenLabs TTS -> `manifests/audio.json`
 - `bun run video <name> --only render`   — Remotion -> `out/<name>.mp4` (offline; no browser/network)
 - `--from <stage>` runs that stage onward; `--preview` opens Remotion Studio.
+- `--force` recomputes every scene even if unchanged (bypasses the cache).
 
 `render` consumes only the manifests, so iterate on timing/captions without re-capturing.
+
+Re-running the capture or narrate stage skips unchanged scenes automatically. Each scene's
+capture config (or narration text + duration) is hashed and compared against the prior
+manifest; if the hash matches and the asset file still exists on disk the scene is reused and
+logged as `↻ <id>: cached`. This avoids redundant Playwright browser work and prevents
+re-billing ElevenLabs for unchanged voiceover. Pass `--force` to recompute everything.
 
 ## Layout
 
@@ -42,9 +49,6 @@ Three isolated stages communicate through JSON manifests on disk:
 
 ## Known limitations
 
-- **No incremental caching yet.** Each run re-captures and re-synthesizes every scene
-  (narration re-bills ElevenLabs). Per-scene hash-based skipping is a planned follow-up;
-  the manifests already store a `hash` per scene for it.
 - **Title cards** render as a themed background plus caption; the storyboard's
   `titlecard.logo` option is not drawn yet.
 - **`prime` hook** is typed `(page: unknown)`; cast to Playwright's `Page` in your

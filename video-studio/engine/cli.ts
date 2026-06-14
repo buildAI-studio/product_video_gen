@@ -64,12 +64,15 @@ async function main() {
 
   if (stages.includes("capture")) {
     console.log("• capture");
+    const prior = await readCaptureManifest(product.paths.captureManifest);
     const m = await runCapture({
       storyboard: product.storyboard,
       config: product.config,
       driver: createPlaywrightDriver(),
       assetsDir: product.paths.assets,
       productDir: product.paths.dir,
+      prior,
+      force: args.force,
     });
     await writeCaptureManifest(product.paths.captureManifest, m);
     const failed = m.scenes.filter((s) => !s.ok).map((s) => s.id);
@@ -78,6 +81,7 @@ async function main() {
 
   if (stages.includes("narrate")) {
     console.log("• narrate");
+    const prior = await readAudioManifest(product.paths.audioManifest);
     const provider = createElevenLabsProvider({ apiKey: process.env.ELEVENLABS_API_KEY ?? "" });
     const m = await runNarrate({
       storyboard: product.storyboard,
@@ -85,6 +89,8 @@ async function main() {
       provider,
       audioDir: product.paths.audio,
       productDir: product.paths.dir,
+      prior,
+      force: args.force,
     });
     await writeAudioManifest(product.paths.audioManifest, m);
   }
