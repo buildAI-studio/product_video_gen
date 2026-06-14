@@ -1,9 +1,43 @@
 import { chromium, type Browser, type Page } from "playwright";
-import type { ProductConfig } from "../schema";
+import type { ProductConfig, Step } from "../schema";
 import type { ClipRequest, DriverResult, PageDriver, ScreenshotRequest } from "./types";
 
 const TITLECARD_HTML = (bg: string, text: string) =>
   `<!doctype html><html><body style="margin:0;background:${bg};color:#fff;font:80px sans-serif;display:grid;place-items:center;height:100vh"><div>${text}</div></body></html>`;
+
+/** Execute a sequence of interaction steps against a Playwright page. */
+async function runSteps(page: Page, steps: Step[]): Promise<void> {
+  for (const s of steps) {
+    if (s.action === "click") await page.click(s.selector);
+    // page.fill is deliberate: atomic value set, reliable for controlled inputs vs keystroke simulation
+    else if (s.action === "type") await page.fill(s.selector, s.text);
+    else if (s.action === "scroll") {
+      // When a selector is provided, scroll that element; otherwise scroll the window.
+      if (s.selector) {
+        if (typeof s.to === "number") {
+          await page.locator(s.selector).hover();
+          await page.mouse.wheel(0, s.to);
+        } else {
+          await page.$eval(
+            s.selector,
+            (el, dir) => { el.scrollTo(0, dir === "bottom" ? el.scrollHeight : 0); },
+            s.to as "bottom" | "top",
+          );
+        }
+      } else if (typeof s.to === "number") {
+        await page.mouse.wheel(0, s.to);
+      } else {
+        await page.evaluate(
+          (dir) => window.scrollTo(0, dir === "bottom" ? document.body.scrollHeight : 0),
+          s.to,
+        );
+      }
+    } else if (s.action === "wait") {
+      if (typeof s.for === "number") await page.waitForTimeout(s.for);
+      else await page.waitForSelector(s.for, { timeout: 10_000 });
+    }
+  }
+}
 
 export function createPlaywrightDriver(): PageDriver {
   let browser: Browser | null = null;
@@ -61,6 +95,10 @@ export function createPlaywrightDriver(): PageDriver {
             }
           }
           await settle(page, req.waitFor);
+          if (req.steps?.length) {
+            await runSteps(page, req.steps);
+            await page.waitForTimeout(400);
+          }
         }
         await page.screenshot({ path: req.outPath, type: "png", fullPage: false });
         const bytes = (await Bun.file(req.outPath).arrayBuffer()).byteLength;
@@ -85,36 +123,7 @@ export function createPlaywrightDriver(): PageDriver {
       try {
         await page.goto(req.route, { waitUntil: "domcontentloaded", timeout: 15_000 });
         await settle(page, req.capture.waitFor);
-        for (const s of req.capture.steps) {
-          if (s.action === "click") await page.click(s.selector);
-          // page.fill is deliberate: atomic value set, reliable for controlled inputs vs keystroke simulation
-          else if (s.action === "type") await page.fill(s.selector, s.text);
-          else if (s.action === "scroll") {
-            // When a selector is provided, scroll that element; otherwise scroll the window.
-            if (s.selector) {
-              if (typeof s.to === "number") {
-                await page.locator(s.selector).hover();
-                await page.mouse.wheel(0, s.to);
-              } else {
-                await page.$eval(
-                  s.selector,
-                  (el, dir) => { el.scrollTo(0, dir === "bottom" ? el.scrollHeight : 0); },
-                  s.to as "bottom" | "top",
-                );
-              }
-            } else if (typeof s.to === "number") {
-              await page.mouse.wheel(0, s.to);
-            } else {
-              await page.evaluate(
-                (dir) => window.scrollTo(0, dir === "bottom" ? document.body.scrollHeight : 0),
-                s.to,
-              );
-            }
-          } else if (s.action === "wait") {
-            if (typeof s.for === "number") await page.waitForTimeout(s.for);
-            else await page.waitForSelector(s.for, { timeout: 10_000 });
-          }
-        }
+        await runSteps(page, req.capture.steps);
         await page.waitForTimeout(400);
         const video = page.video();
         if (!video) throw new Error("video recording not started — recordVideo option not set");

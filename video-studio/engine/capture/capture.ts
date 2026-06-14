@@ -62,7 +62,7 @@ export async function runCapture(args: RunCaptureArgs): Promise<CaptureManifest>
           const route = await resolveRoute(config, cap.route);
           await ensureHealth();
           result = await driver.screenshot(
-            { kind: "screenshot", route: joinUrl(config.appUrl, route), waitFor: cap.waitFor, outPath, capture: cap },
+            { kind: "screenshot", route: joinUrl(config.appUrl, route), waitFor: cap.waitFor, steps: cap.steps, outPath, capture: cap },
             config,
           );
         } else {

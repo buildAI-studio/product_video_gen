@@ -17,7 +17,7 @@ export const step = z.discriminatedUnion("action", [
 ]);
 
 export const capture = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("screenshot"), route: z.string(), waitFor: z.string().optional() }),
+  z.object({ kind: z.literal("screenshot"), route: z.string(), waitFor: z.string().optional(), steps: z.array(step).optional() }),
   z.object({
     kind: z.literal("interaction"),
     route: z.string(),

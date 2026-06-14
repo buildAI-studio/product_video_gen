@@ -3,8 +3,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdtempSync } from "node:fs";
 import { runCapture } from "./capture";
-import type { PageDriver } from "./types";
-import type { Storyboard, ProductConfig } from "../schema";
+import type { PageDriver, ScreenshotRequest } from "./types";
+import type { Storyboard, ProductConfig, Step } from "../schema";
+import { parseStoryboard } from "../schema";
 
 const config: ProductConfig = {
   appUrl: "http://localhost:9999",
@@ -151,6 +152,47 @@ test("caching: fully-cached run never calls health() even if the server is down"
   // Must resolve successfully (health was never called) and return the same manifest
   expect(m2.scenes.map((s) => s.id)).toEqual(prior.scenes.map((s) => s.id));
   expect(m2.scenes.every((s) => s.ok)).toBe(true);
+});
+
+test("screenshot scene with steps passes them into driver.screenshot", async () => {
+  const dir = mkdtempSync(join(tmpdir(), "vs-cap-steps-"));
+  const capturedReqs: ScreenshotRequest[] = [];
+  const steps: Step[] = [{ action: "click", selector: "#b" }];
+  const sb: Storyboard = {
+    scenes: [{ id: "x", capture: { kind: "screenshot", route: "/", steps }, duration: 2 }],
+  };
+  await runCapture({
+    storyboard: sb,
+    config,
+    assetsDir: dir,
+    productDir: dir,
+    driver: fakeDriver({
+      screenshot: async (req) => {
+        capturedReqs.push(req);
+        return { bytes: 50_000, w: 1920, h: 1080 };
+      },
+    }),
+  });
+  expect(capturedReqs).toHaveLength(1);
+  expect(capturedReqs[0]!.steps).toEqual(steps);
+});
+
+test("parseStoryboard accepts screenshot with steps", () => {
+  const parsed = parseStoryboard({
+    scenes: [
+      {
+        id: "x",
+        capture: { kind: "screenshot", route: "/", steps: [{ action: "click", selector: "#b" }] },
+        duration: 2,
+      },
+    ],
+  });
+  expect(parsed.scenes[0]!.capture.kind).toBe("screenshot");
+  // narrow to access steps
+  const cap = parsed.scenes[0]!.capture;
+  if (cap.kind === "screenshot") {
+    expect(cap.steps).toEqual([{ action: "click", selector: "#b" }]);
+  }
 });
 
 test("caching: skips only unchanged scenes, recaptures changed ones", async () => {

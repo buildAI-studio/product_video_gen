@@ -46,6 +46,28 @@ test(
 );
 
 test(
+  "screenshot runs pre-screenshot steps (click changes state before capture)",
+  async () => {
+    const driver = createPlaywrightDriver();
+    const dir = mkdtempSync(join(tmpdir(), "vs-pw-steps-"));
+    const outPath = join(dir, "clicked.png");
+    const r = await driver.screenshot(
+      {
+        kind: "screenshot",
+        route: appUrl + "/",
+        outPath,
+        capture: { kind: "screenshot", route: "/", steps: [{ action: "click", selector: "#b" }] },
+        steps: [{ action: "click", selector: "#b" }],
+      },
+      config,
+    );
+    await driver.close();
+    expect(r.bytes).toBeGreaterThan(8 * 1024);
+  },
+  120_000,
+);
+
+test(
   "clip records a non-empty video after interaction steps",
   async () => {
     const driver = createPlaywrightDriver();

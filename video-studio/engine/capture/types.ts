@@ -1,9 +1,10 @@
-import type { Capture, ProductConfig } from "../schema";
+import type { Capture, ProductConfig, Step } from "../schema";
 
 export type ScreenshotRequest = {
   kind: "screenshot" | "titlecard";
   route?: string; // absolute url; undefined for titlecard
   waitFor?: string;
+  steps?: Step[]; // optional pre-screenshot interaction steps (screenshot kind only)
   outPath: string; // absolute path to write the PNG
   capture: Capture; // full capture node (titlecard bg/logo, etc.)
 };
