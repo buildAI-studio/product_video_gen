@@ -21,7 +21,8 @@ const storyboard: Storyboard = {
       id: "02-dashboard",
       capture: { kind: "interaction", route: "/", steps: [wait(700), scroll(520), wait(800), scroll(520), wait(900)] },
       caption: { primary: "One command center for the whole fleet", secondary: "Readiness, utilization and alerts at a glance" },
-      duration: 7,
+      trimStartSec: 2.0,
+      duration: 5,
     },
 
     // RECORDING — navigate to the registry, scroll the vehicle table.
@@ -29,7 +30,8 @@ const storyboard: Storyboard = {
       id: "03-vehicles",
       capture: { kind: "interaction", route: "/", steps: [goTo("Vehicle Management"), wait(1000), scroll(360), wait(800), scroll(360), wait(900)] },
       caption: { primary: "Every vehicle, tracked", secondary: "Registration, inspection and insurance expiry in one registry" },
-      duration: 7,
+      trimStartSec: 2.0,
+      duration: 6,
     },
 
     // SPOTLIGHT — highlight the approval state on the maintenance board.
@@ -72,7 +74,8 @@ const storyboard: Storyboard = {
       id: "08-reports",
       capture: { kind: "interaction", route: "/", steps: [goTo("Reports"), wait(1000), { action: "hover", selector: 'text=Maintenance Summary' }, wait(900)] },
       caption: { primary: "Decisions backed by data", secondary: "Fleet, maintenance and driver reports, exportable to PDF" },
-      duration: 6,
+      trimStartSec: 2.0,
+      duration: 5,
     },
 
     // RECORDING — the audit trail, scrolling through logged actions.
@@ -80,8 +83,8 @@ const storyboard: Storyboard = {
       id: "09-audit",
       capture: { kind: "interaction", route: "/", steps: [goTo("Audit Log"), wait(1000), scroll(320), wait(900)] },
       caption: { primary: "Full accountability", secondary: "Every action logged and searchable" },
-      duration: 5,
-      transitionOut: "cut",
+      trimStartSec: 2.0,
+      duration: 4.5,
     },
   ],
 };

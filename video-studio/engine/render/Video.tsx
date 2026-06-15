@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Audio, OffthreadVideo, staticFile } from "remotion";
+import { AbsoluteFill, Audio, OffthreadVideo, staticFile, useVideoConfig } from "remotion";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 import { slide } from "@remotion/transitions/slide";
@@ -22,12 +22,16 @@ export type VideoProps = {
   height: number;
 };
 
-const SceneBody: React.FC<{ scene: ScheduledScene }> = ({ scene }) => (
+const SceneBody: React.FC<{ scene: ScheduledScene }> = ({ scene }) => {
+  const { fps } = useVideoConfig();
+  // Trim the page-load preamble (e.g. a loading spinner) off the front of recordings.
+  const trimBefore = scene.trimStartSec ? Math.round(scene.trimStartSec * fps) : undefined;
+  return (
   <AbsoluteFill>
     {scene.kind === "titlecard" ? (
       <TitleCard bg={scene.titlecard?.bg} logo={scene.titlecard?.logo} />
     ) : scene.kind === "interaction" ? (
-      <OffthreadVideo src={staticFile(scene.asset)} />
+      <OffthreadVideo src={staticFile(scene.asset)} trimBefore={trimBefore} />
     ) : scene.focus ? (
       <KenBurns src={scene.asset} enabled={false} />
     ) : (
@@ -42,7 +46,8 @@ const SceneBody: React.FC<{ scene: ScheduledScene }> = ({ scene }) => (
     {scene.caption ? <Caption primary={scene.caption.primary} secondary={scene.caption.secondary} /> : null}
     {scene.audio ? <Audio src={staticFile(scene.audio)} /> : null}
   </AbsoluteFill>
-);
+  );
+};
 
 export const Video: React.FC<VideoProps> = ({ schedule, theme, locale }) => {
   return (

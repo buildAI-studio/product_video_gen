@@ -38,6 +38,7 @@ export const scene = z
     motion: z.enum(["kenburns", "none"]).optional(),
     transitionOut: z.enum(["cut", "fade", "slide"]).optional(),
     focus: z.object({ selector: z.string(), label: z.string().optional() }).optional(),
+    trimStartSec: z.number().nonnegative().optional(),
   })
   .superRefine((s, ctx) => {
     if (s.duration === "auto" && !s.narration) {

@@ -81,3 +81,13 @@ test("screenshot scene with focus box in capture manifest yields ScheduledScene.
   const sched = computeSchedule(sb, cap, aud, 30);
   expect(sched[0]!.focus).toEqual({ x: 100, y: 200, w: 300, h: 80, label: "KPI" });
 });
+
+test("interaction scene's authored trimStartSec is carried onto the scheduled scene", () => {
+  const sb: Storyboard = {
+    scenes: [{ id: "02-rec", capture: { kind: "interaction", route: "/", steps: [{ action: "wait", for: 100 }] }, duration: 5, trimStartSec: 2 }],
+  };
+  const cap: CaptureManifest = { scenes: [{ id: "02-rec", kind: "interaction", asset: "assets/02-rec.mp4", ok: true, hash: "a" }] };
+  const aud: AudioManifest = { scenes: [{ id: "02-rec", audio: null, audioSec: null, finalSec: 5, hash: "a" }] };
+  const sched = computeSchedule(sb, cap, aud, 30);
+  expect(sched[0]!.trimStartSec).toBe(2);
+});
