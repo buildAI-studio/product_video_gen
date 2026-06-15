@@ -11,9 +11,9 @@ const storyboard: Storyboard = {
   scenes: [
     {
       id: "01-title",
-      capture: { kind: "titlecard" },
+      capture: { kind: "titlecard", bg: "#ffffff" },
       caption: { primary: "IVMS", secondary: "Integrated Vehicle Management System" },
-      duration: 3.5,
+      duration: 4,
     },
 
     // RECORDING — open on the live dashboard, scroll to reveal the full overview.

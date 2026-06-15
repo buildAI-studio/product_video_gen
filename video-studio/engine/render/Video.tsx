@@ -29,7 +29,7 @@ const SceneBody: React.FC<{ scene: ScheduledScene }> = ({ scene }) => {
   return (
   <AbsoluteFill>
     {scene.kind === "titlecard" ? (
-      <TitleCard bg={scene.titlecard?.bg} logo={scene.titlecard?.logo} />
+      <TitleCard bg={scene.titlecard?.bg} logo={scene.titlecard?.logo} title={scene.caption} />
     ) : scene.kind === "interaction" ? (
       <OffthreadVideo src={staticFile(scene.asset)} trimBefore={trimBefore} />
     ) : scene.focus ? (
@@ -43,7 +43,7 @@ const SceneBody: React.FC<{ scene: ScheduledScene }> = ({ scene }) => {
         <Cursor targetX={scene.focus.x + scene.focus.w / 2} targetY={scene.focus.y + scene.focus.h / 2} />
       </>
     ) : null}
-    {scene.caption ? <Caption primary={scene.caption.primary} secondary={scene.caption.secondary} /> : null}
+    {scene.caption && scene.kind !== "titlecard" ? <Caption primary={scene.caption.primary} secondary={scene.caption.secondary} /> : null}
     {scene.audio ? <Audio src={staticFile(scene.audio)} /> : null}
   </AbsoluteFill>
   );
