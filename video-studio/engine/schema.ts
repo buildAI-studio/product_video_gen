@@ -7,6 +7,7 @@ export const localizedText = z.object({
 
 export const step = z.discriminatedUnion("action", [
   z.object({ action: z.literal("click"), selector: z.string() }),
+  z.object({ action: z.literal("hover"), selector: z.string() }),
   z.object({ action: z.literal("type"), selector: z.string(), text: z.string() }),
   z.object({
     action: z.literal("scroll"),
@@ -17,7 +18,7 @@ export const step = z.discriminatedUnion("action", [
 ]);
 
 export const capture = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("screenshot"), route: z.string(), waitFor: z.string().optional() }),
+  z.object({ kind: z.literal("screenshot"), route: z.string(), waitFor: z.string().optional(), steps: z.array(step).optional() }),
   z.object({
     kind: z.literal("interaction"),
     route: z.string(),
@@ -36,6 +37,8 @@ export const scene = z
     duration: z.union([z.number().positive(), z.literal("auto")]),
     motion: z.enum(["kenburns", "none"]).optional(),
     transitionOut: z.enum(["cut", "fade", "slide"]).optional(),
+    focus: z.object({ selector: z.string(), label: z.string().optional() }).optional(),
+    trimStartSec: z.number().nonnegative().optional(),
   })
   .superRefine((s, ctx) => {
     if (s.duration === "auto" && !s.narration) {
@@ -79,6 +82,7 @@ export type LocalizedText = z.infer<typeof localizedText>;
 export type Step = z.infer<typeof step>;
 export type Capture = z.infer<typeof capture>;
 export type Scene = z.infer<typeof scene>;
+export type Focus = NonNullable<Scene["focus"]>;
 export type Storyboard = z.infer<typeof storyboard>;
 export type ProductConfigData = z.infer<typeof productConfig>;
 

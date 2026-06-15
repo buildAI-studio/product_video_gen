@@ -1,9 +1,10 @@
-import { test, expect, afterAll } from "bun:test";
+import { test, expect, afterAll, beforeAll } from "bun:test";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { mkdtempSync } from "node:fs";
 import { createPlaywrightDriver } from "./playwright-driver";
 import type { ProductConfig } from "../schema";
+import type { PageDriver } from "./types";
 
 // Serve the static fixture so the driver has a real app to hit.
 const server = Bun.serve({
@@ -15,7 +16,13 @@ const server = Bun.serve({
 });
 const appUrl = `http://localhost:${server.port}`;
 
-afterAll(() => server.stop(true));
+// Share one browser across all tests in this file to avoid Chromium launch overhead.
+let driver: PageDriver;
+beforeAll(() => { driver = createPlaywrightDriver(); });
+afterAll(async () => {
+  await driver.close();
+  server.stop(true);
+});
 
 const config: ProductConfig = {
   appUrl,
@@ -31,7 +38,6 @@ const config: ProductConfig = {
 test(
   "screenshots a real served page above the min size",
   async () => {
-    const driver = createPlaywrightDriver();
     const dir = mkdtempSync(join(tmpdir(), "vs-pw-"));
     const outPath = join(dir, "home.png");
     await driver.health(config);
@@ -39,7 +45,26 @@ test(
       { kind: "screenshot", route: appUrl + "/", outPath, capture: { kind: "screenshot", route: "/" } },
       config,
     );
-    await driver.close();
+    expect(r.bytes).toBeGreaterThan(8 * 1024);
+  },
+  120_000,
+);
+
+test(
+  "screenshot runs pre-screenshot steps (click changes state before capture)",
+  async () => {
+    const dir = mkdtempSync(join(tmpdir(), "vs-pw-steps-"));
+    const outPath = join(dir, "clicked.png");
+    const r = await driver.screenshot(
+      {
+        kind: "screenshot",
+        route: appUrl + "/",
+        outPath,
+        capture: { kind: "screenshot", route: "/", steps: [{ action: "click", selector: "#b" }] },
+        steps: [{ action: "click", selector: "#b" }],
+      },
+      config,
+    );
     expect(r.bytes).toBeGreaterThan(8 * 1024);
   },
   120_000,
@@ -48,7 +73,6 @@ test(
 test(
   "clip records a non-empty video after interaction steps",
   async () => {
-    const driver = createPlaywrightDriver();
     const dir = mkdtempSync(join(tmpdir(), "vs-pw-clip-"));
     const outPath = join(dir, "clip.mp4");
     const r = await driver.clip(
@@ -67,7 +91,33 @@ test(
       },
       config,
     );
-    await driver.close();
+    expect(r.bytes).toBeGreaterThan(0);
+  },
+  120_000,
+);
+
+test(
+  "clip records a non-empty video with hover + click steps (smooth motion + cursor)",
+  async () => {
+    const dir = mkdtempSync(join(tmpdir(), "vs-pw-clip-hover-"));
+    const outPath = join(dir, "clip-hover.mp4");
+    const r = await driver.clip(
+      {
+        kind: "interaction",
+        route: appUrl + "/",
+        capture: {
+          kind: "interaction",
+          route: "/",
+          steps: [
+            { action: "hover", selector: "#b" },
+            { action: "wait", for: 300 },
+            { action: "click", selector: "#b" },
+          ],
+        },
+        outPath,
+      },
+      config,
+    );
     expect(r.bytes).toBeGreaterThan(0);
   },
   120_000,

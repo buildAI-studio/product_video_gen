@@ -30,6 +30,35 @@ test("rejects an empty scenes array", () => {
   expect(() => parseStoryboard({ scenes: [] })).toThrow();
 });
 
+test("accepts a screenshot scene with focus selector and label", () => {
+  const sb = parseStoryboard({
+    scenes: [
+      {
+        id: "02-home",
+        capture: { kind: "screenshot", route: "/" },
+        duration: 2,
+        focus: { selector: "#kpi", label: "KPI" },
+      },
+    ],
+  });
+  expect(sb.scenes[0]!.focus).toEqual({ selector: "#kpi", label: "KPI" });
+});
+
+test("accepts a screenshot scene with focus selector without label", () => {
+  const sb = parseStoryboard({
+    scenes: [
+      {
+        id: "03-detail",
+        capture: { kind: "screenshot", route: "/detail" },
+        duration: 3,
+        focus: { selector: ".metric-card" },
+      },
+    ],
+  });
+  expect(sb.scenes[0]!.focus?.selector).toBe(".metric-card");
+  expect(sb.scenes[0]!.focus?.label).toBeUndefined();
+});
+
 test("accepts a valid product config", () => {
   const cfg = parseProductConfig({
     appUrl: "http://localhost:3000",

@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, Audio, OffthreadVideo, staticFile } from "remotion";
+import { AbsoluteFill, Audio, OffthreadVideo, staticFile, useVideoConfig } from "remotion";
 import { TransitionSeries, linearTiming } from "@remotion/transitions";
 import { fade } from "@remotion/transitions/fade";
 import { slide } from "@remotion/transitions/slide";
@@ -9,6 +9,8 @@ import { ThemeProvider } from "./theme";
 import { Caption } from "./components/Caption";
 import { KenBurns } from "./components/KenBurns";
 import { TitleCard } from "./components/TitleCard";
+import { Spotlight } from "./components/Spotlight";
+import { Cursor } from "./components/Cursor";
 import { TRANSITION_FRAMES } from "./constants";
 
 export type VideoProps = {
@@ -20,19 +22,32 @@ export type VideoProps = {
   height: number;
 };
 
-const SceneBody: React.FC<{ scene: ScheduledScene }> = ({ scene }) => (
+const SceneBody: React.FC<{ scene: ScheduledScene }> = ({ scene }) => {
+  const { fps } = useVideoConfig();
+  // Trim the page-load preamble (e.g. a loading spinner) off the front of recordings.
+  const trimBefore = scene.trimStartSec ? Math.round(scene.trimStartSec * fps) : undefined;
+  return (
   <AbsoluteFill>
     {scene.kind === "titlecard" ? (
-      <TitleCard bg={scene.titlecard?.bg} logo={scene.titlecard?.logo} />
+      <TitleCard bg={scene.titlecard?.bg} logo={scene.titlecard?.logo} title={scene.caption} />
     ) : scene.kind === "interaction" ? (
-      <OffthreadVideo src={staticFile(scene.asset)} />
+      <OffthreadVideo src={staticFile(scene.asset)} trimBefore={trimBefore} />
+    ) : scene.focus ? (
+      <KenBurns src={scene.asset} enabled={false} />
     ) : (
       <KenBurns src={scene.asset} enabled={scene.motion === "kenburns"} />
     )}
-    {scene.caption ? <Caption primary={scene.caption.primary} secondary={scene.caption.secondary} /> : null}
+    {scene.kind === "screenshot" && scene.focus ? (
+      <>
+        <Spotlight focus={scene.focus} />
+        <Cursor targetX={scene.focus.x + scene.focus.w / 2} targetY={scene.focus.y + scene.focus.h / 2} />
+      </>
+    ) : null}
+    {scene.caption && scene.kind !== "titlecard" ? <Caption primary={scene.caption.primary} secondary={scene.caption.secondary} /> : null}
     {scene.audio ? <Audio src={staticFile(scene.audio)} /> : null}
   </AbsoluteFill>
-);
+  );
+};
 
 export const Video: React.FC<VideoProps> = ({ schedule, theme, locale }) => {
   return (

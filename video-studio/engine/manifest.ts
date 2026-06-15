@@ -9,6 +9,7 @@ export type CaptureSceneEntry = {
   w?: number;
   h?: number;
   hash: string; // hash of the scene's capture slice
+  focus?: { x: number; y: number; w: number; h: number; label?: string };
 };
 export type CaptureManifest = { scenes: CaptureSceneEntry[] };
 
