@@ -22,6 +22,7 @@ const config: ProductConfig = {
   },
   output: { width: 1920, height: 1080, fps: 30 },
   locale: { primary: "en" },
+  voice: { id: "WRTiUEhnYuLOuf6I0PHk" },
 
   prime: async (page) => {
     await (page as { addInitScript: (fn: () => void) => Promise<void> }).addInitScript(() => {
