@@ -22,7 +22,7 @@ beforeAll(() => { driver = createPlaywrightDriver(); });
 afterAll(async () => {
   await driver.close();
   server.stop(true);
-});
+}, 30_000); // closing Chromium after the clip recordings can exceed Bun's default 5s hook timeout
 
 const config: ProductConfig = {
   appUrl,
